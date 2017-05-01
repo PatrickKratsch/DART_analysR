@@ -40,6 +40,12 @@ clean <- function(raw, app_num, sleep_thresh){
   # Factor-to-numeric of time column
   flies$time <- as.numeric(as.character(flies$time))
   
+  # Factor-to-numeric of fly columns
+  for(i in 1:(dim(flies)[2] - 1)){
+    current_fly <- sprintf("fly %i", i)
+    flies[[current_fly]] <- as.numeric(as.character(flies[[current_fly]]))
+  }
+  
   ## Find and correct missing values
   # Split NA's in flies by consecutive sums
   flies_NA <- which(is.na(flies[[1]]))
@@ -49,8 +55,8 @@ clean <- function(raw, app_num, sleep_thresh){
   NA_length <- length(flies_NA_split)
   for(i in 1:NA_length){
     NA_chunk <- flies_NA_split[[i]]
-    chunk_interval1 <- as.numeric(as.character(flies[[1]][NA_chunk[1] - 1]))
-    chunk_interval2 <- as.numeric(as.character(flies[[1]][NA_chunk[length(NA_chunk)] + 1]))
+    chunk_interval1 <- flies[[1]][NA_chunk[1] - 1]
+    chunk_interval2 <- flies[[1]][NA_chunk[length(NA_chunk)] + 1]
     interval_filler <- (chunk_interval2 - chunk_interval1) / (length(NA_chunk) + 1)
     
     j <- 1
@@ -60,5 +66,18 @@ clean <- function(raw, app_num, sleep_thresh){
     }
   }
   
+  # Fill in NA's for fly velocity
+  for(i in 2:(dim(flies)[2])){
+    for(j in 1:NA_length){
+      NA_chunk <- flies_NA_split[[j]]
+      chunk_interval1 <- flies[[i]][NA_chunk[1] - 1]
+      chunk_interval2 <- flies[[i]][NA_chunk[length(NA_chunk)] + 1]
+      interval_filler <- (chunk_interval2 + chunk_interval1) / 2
+      
+      for(cell in NA_chunk){
+        flies[[i]][cell] <- interval_filler
+      }
+    }
+  }
   flies
 }
