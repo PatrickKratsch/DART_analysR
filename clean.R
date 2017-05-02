@@ -69,7 +69,7 @@ clean <- function(raw, app_num, sleep_thresh){
   # Fill in NA's for fly velocity
   for(i in 2:(dim(flies)[2])){
     for(j in 1:NA_length){
-      NA_chunk <- flies_NA_split[[j]]
+      NA_chunk <- c(flies_NA_split[[j]][1] - 1, flies_NA_split[[j]])
       chunk_interval1 <- flies[[i]][NA_chunk[1] - 1]
       chunk_interval2 <- flies[[i]][NA_chunk[length(NA_chunk)] + 1]
       interval_filler <- (chunk_interval2 + chunk_interval1) / 2
