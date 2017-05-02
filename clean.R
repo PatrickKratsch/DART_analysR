@@ -54,7 +54,7 @@ clean <- function(raw, app_num, sleep_thresh){
   # Fill in NA's in time column
   NA_length <- length(flies_NA_split)
   for(i in 1:NA_length){
-    NA_chunk <- flies_NA_split[[i]]
+    NA_chunk <- c(flies_NA_split[[i]][1] - 1, flies_NA_split[[i]])
     chunk_interval1 <- flies[[1]][NA_chunk[1] - 1]
     chunk_interval2 <- flies[[1]][NA_chunk[length(NA_chunk)] + 1]
     interval_filler <- (chunk_interval2 - chunk_interval1) / (length(NA_chunk) + 1)
