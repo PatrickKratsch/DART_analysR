@@ -1,4 +1,4 @@
-clean <- function(raw, app_num, sleep_thresh){
+clean <- function(raw, app_num){
   
   library(dplyr)
   library(tidyr)
