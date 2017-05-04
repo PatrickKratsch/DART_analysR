@@ -1,4 +1,4 @@
-DART_analysR <- function(clean, sleep_threshold, cell_length, ld_transition){
+DART_analysR <- function(clean, sleep_threshold, cell_length, ld_transition = NULL){
   
   ## Parameters ## 
   # clean = clean.R output
@@ -30,7 +30,7 @@ DART_analysR <- function(clean, sleep_threshold, cell_length, ld_transition){
   }
   
   # Create new dataframe five_min_bouts, which has 1's at sleep onset times, i.e. at the beginning
-  # of time bouts of 5 min of inactivity, based on analogue_to_binary.
+  # of time bouts of 300 seconds of inactivity, based on analogue_to_binary.
   five_min_bouts <- analogue_to_binary
   for(i in 2:cols){
     five_min_bouts[, i] <- sleep_define(five_min_bouts[, i], cell_length)
@@ -45,7 +45,7 @@ DART_analysR <- function(clean, sleep_threshold, cell_length, ld_transition){
     start_index <- length(sleep_start_list) + 1
     sleep_start_list[[start_index]] <- sleep_start_column
     
-    sleep_end_column <- sleep_end(five_min_bouts[, i])
+    sleep_end_column <- sleep_end(five_min_bouts[, i], cell_length)
     end_index <- length(sleep_end_list) + 1
     sleep_end_list[[end_index]] <- sleep_end_column
   }
@@ -56,6 +56,19 @@ DART_analysR <- function(clean, sleep_threshold, cell_length, ld_transition){
   for(i in 2:cols){
     bout_index <- length(sleep_bout_length) + 1
     sleep_bout_length[[bout_index]] <- sleep_end_list[[bout_index]] - sleep_start_list[[bout_index]] + 1
+  }
+  
+  # Transform relevant vectors to seconds
+  for(i in 1:length(sleep_start_list)){
+    sleep_start_list[[i]] <- cell_length * sleep_start_list[[i]]
+  }
+  
+  for(i in 1:length(sleep_end_list)){
+    sleep_end_list[[i]] <- cell_length * sleep_end_list[[i]]
+  }
+  
+  for(i in 1:length(sleep_bout_length)){
+    sleep_bout_length[[i]] <- cell_length * sleep_bout_length[[i]]
   }
   
   output <- list(ld_transition = ld_transition, clean = clean, analogue_to_binary = analogue_to_binary, 

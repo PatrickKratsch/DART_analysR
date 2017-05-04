@@ -79,5 +79,8 @@ clean <- function(raw, app_num){
       }
     }
   }
+  # Update row names
+  row.names(flies) <- 1:nrow(flies)
+  
   flies
 }

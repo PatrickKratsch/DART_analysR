@@ -1,11 +1,11 @@
 sleep_define <- function(vec, cell_length){
     
-  # cell_num stores the number of consecutive inactivity cells to define a sleep bout 
+  # cell_num stores the number of consecutive inactivity cells needed to define a sleep bout 
   len <- length(vec)
   cell_num <- 300 / cell_length
   
   # The for-loop looking for sleep bouts can run intil adjusted_len, akin to EOF  
-  adjusted_len <- len - (300 - cell_length)
+  adjusted_len <- len - (cell_num - 1)
   
   # Run for loop to identify sleep bouts (= cell_num times inactivity cells)
   for(i in 2:adjusted_len){
@@ -19,10 +19,10 @@ sleep_define <- function(vec, cell_length){
     }
   }
     
-    # Add an extra condition for the last 4
+    # Add an extra condition for the last 
     # bouts in vec (analogue_to_binary). These
     # cannot be one, and so must all be set to zero.
-    vec[(len - 300 - (2 * cell_length)):len] <- 0
+    vec[(len - (cell_num - 2)):len] <- 0
     
     vec
 }
