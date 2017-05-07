@@ -1,13 +1,13 @@
 sleep_define <- function(vec, cell_length){
     
-  # cell_num stores the number of consecutive inactivity cells needed to define a sleep bout 
+  # cell_num stores the number of consecutive inactivity cells (i.e. number of samplings) needed to define a sleep bout 
   len <- length(vec)
   cell_num <- 300 / cell_length
   
-  # The for-loop looking for sleep bouts can run intil adjusted_len, akin to EOF  
+  # The for-loop looking for sleep bouts can run until adjusted_len, akin to EOF  
   adjusted_len <- len - (cell_num - 1)
   
-  # Run for loop to identify sleep bouts (= cell_num times inactivity cells)
+  # Run for loop to identify sleep bouts (= cell_num times of consecutive inactivity cells)
   for(i in 2:adjusted_len){
     window_sum <- sum(vec[i:(i + cell_num - 1)])
         
