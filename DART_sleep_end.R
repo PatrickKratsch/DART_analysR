@@ -1,4 +1,4 @@
-sleep_end <- function(vec, cell_length){
+DART_sleep_end <- function(vec, cell_length){
   
     cell_num <- 300 / cell_length  
     adjusted_length <- length(vec) - 1

@@ -1,4 +1,4 @@
-sleep_start <- function(vec){
+DART_sleep_start <- function(vec){
     
     adjusted_length <- length(vec) - 1
     

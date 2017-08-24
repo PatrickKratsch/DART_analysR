@@ -1,4 +1,4 @@
-sleep_define <- function(vec, cell_length){
+DART_sleep_define <- function(vec, cell_length){
   
   # cell_num stores the number of consecutive inactivity 
   # cells (i.e. number of samplings) needed to define a sleep bout 

@@ -12,9 +12,9 @@ DART_analysR <- function(clean, sleep_threshold, cell_length, ld_transition = NU
   library(data.table)
   
   # Source auxilliary functions (need to be in working directory)
-  source("sleep_define.R")
-  source("sleep_start.R")
-  source("sleep_end.R")
+  source("DART_sleep_define.R")
+  source("DART_sleep_start.R")
+  source("DART_sleep_end.R")
   
   # Bind an extra row of 1's to first position of clean
   # This extra row is important for downstream analysis, 
