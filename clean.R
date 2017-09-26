@@ -1,5 +1,10 @@
+# clean.R pre-processes the raw population movement data from the DART
 clean <- function(raw, ...){
   
+  # (...) input argument = comma-separated integers, indicating 
+  #                        the number of flies in each of the monitors, 
+  #                        as defined in the experimental setup in DART.
+    
   flies_app <- list(...)
   
   library(dplyr)
@@ -9,13 +14,13 @@ clean <- function(raw, ...){
   # Replace all missing values and N/A's with NA and convert to DT
   raw <- read.csv(raw, na.strings = c("", "N/A", "NA")) %>% setDT
 
-  # Remove first unneccessary columns
+  # Remove first unneccessary columns and first three rows
   data <- select(raw, -c(1:(8 + (2 * (length(flies_app) - 1)))))[-(1:3), ]
   
   # Save time column
   time <- select(data, 1)
   
-  # Select relevant columns and rows based on app_num (input)
+  # Select relevant columns and rows based on input
   flies <- time
   colnames(flies) <- "time"
   

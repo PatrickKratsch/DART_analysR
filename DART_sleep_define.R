@@ -3,7 +3,7 @@ DART_sleep_define <- function(vec, cell_length){
   # cell_num stores the number of consecutive inactivity 
   # cells (i.e. number of samplings) needed to define a sleep bout 
   len <- length(vec)
-  cell_num <- 300 / cell_length
+  cell_num <- 300 / cell_length # cell_length must be in seconds
   
   # The for-loop looking for sleep bouts can 
   # run until adjusted_len

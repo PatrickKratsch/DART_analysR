@@ -1,12 +1,14 @@
-DART_analysR <- function(clean, sleep_threshold, cell_length, ld_transition = NULL){
+DART_analysR <- function(clean, sleep_threshold, cell_length, transition = NULL, before_after = NULL){
   
   ## Parameters ## 
   # clean           = clean.R output
-  # sleep_threshold = velocity of flies must be 
+  # sleep_threshold = velocity of flies (per cell_length) must be 
   #                   below this value to be considered sleeping
   # cell_length     = length of one sampling window in seconds
-  # ld_transition   = time point in seconds when light-dark 
-  #                   transition occurred
+  # transition      = time point in seconds a transition occurred
+  # before_after    = if transition is given, this lets the user
+  #                   specify whether DART_analysR should analyse
+  #                   the data of clean before or after the transition
   
   library(dplyr)
   library(data.table)
@@ -16,9 +18,31 @@ DART_analysR <- function(clean, sleep_threshold, cell_length, ld_transition = NU
   source("DART_sleep_start.R")
   source("DART_sleep_end.R")
   
+  # If ld_transition is given manually, analyse relevant part,
+  # i.e. day or night. If before_after is "before",
+  # this programme will analyse all the data of clean
+  # up to and including "before", whereas if 
+  # before_after is specified as "after", the programme
+  # will analyse all the data of clean from
+  # transition to the last row of clean.
+  if(!is.null(transition)){
+    
+    if(!is.null(before_after)){
+      
+      if(before_after == "before"){
+        
+        clean <- clean[0:transition, ]
+      }
+      else if(before_after == "after"){
+        
+        clean <- clean[transition:dim(clean)[1], ]
+      }
+    }
+  }
+
   # Bind an extra row of 1's to first position of clean
   # This extra row is important for downstream analysis, 
-  # but does not represent anything physiological
+  # but does not represent anything biological
   col_num <- dim(clean)[2]
   clean2 <- as.list(rep.int((sleep_threshold + 1), col_num)) %>% rbind(clean)
   
@@ -36,12 +60,12 @@ DART_analysR <- function(clean, sleep_threshold, cell_length, ld_transition = NU
   # Create new dataframe five_min_bouts, 
   # which has 1's at sleep onset times, 
   # i.e. at the beginning
-  # of time bouts of 300 seconds of inactivity, 
+  # of time bouts of 300 seconds/5 min of inactivity, 
   # based on analogue_to_binary
   five_min_bouts <- analogue_to_binary
   for(i in 2:cols){
     
-    five_min_bouts[[i]] <- sleep_define(five_min_bouts[[i]], cell_length)
+    five_min_bouts[[i]] <- DART_sleep_define(five_min_bouts[[i]], cell_length)
   }
   
   # Now slide down every column of five_min_bouts 
@@ -51,11 +75,11 @@ DART_analysR <- function(clean, sleep_threshold, cell_length, ld_transition = NU
   sleep_end_list <- list()
   for(i in 2:cols){
     
-    sleep_start_column <- sleep_start(five_min_bouts[[i]])
+    sleep_start_column <- DART_sleep_start(five_min_bouts[[i]])
     start_index <- length(sleep_start_list) + 1
     sleep_start_list[[start_index]] <- sleep_start_column
     
-    sleep_end_column <- sleep_end(five_min_bouts[[i]], cell_length)
+    sleep_end_column <- DART_sleep_end(five_min_bouts[[i]], cell_length)
     end_index <- length(sleep_end_list) + 1
     sleep_end_list[[end_index]] <- sleep_end_column
   }
@@ -88,7 +112,7 @@ DART_analysR <- function(clean, sleep_threshold, cell_length, ld_transition = NU
     sleep_bout_length[[i]] <- cell_length / 60 * sleep_bout_length[[i]]
   }
   
-  output <- list(ld_transition = ld_transition, clean = clean, 
+  output <- list(transition = transition, clean = clean, 
                  analogue_to_binary = analogue_to_binary, 
                  five_min_bouts = five_min_bouts, sleep_start_list = sleep_start_list, 
                  sleep_end_list = sleep_end_list, sleep_bout_length = sleep_bout_length)
