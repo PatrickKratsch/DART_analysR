@@ -1,4 +1,4 @@
-slst_vs_bl <- function(DART_analysR_output, xlsx_file_name, channels, transition = NULL){
+DART_slst_vs_bl <- function(DART_analysR_output, xlsx_file_name, channels, transition = NULL){
     
     # NB: the xlsx package is built in JAVA, so you need JAVA installed to run this script
     library("xlsx")

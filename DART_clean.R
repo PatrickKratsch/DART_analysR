@@ -1,5 +1,5 @@
-# clean.R pre-processes the raw population movement data from the DART
-clean <- function(raw, ...){
+# DART_clean.R pre-processes the raw population movement data from the DART
+DART_clean <- function(raw, tidy = FALSE, ...){
   
   # (...) input argument = comma-separated integers, indicating 
   #                        the number of flies in each of the monitors, 
@@ -94,5 +94,12 @@ clean <- function(raw, ...){
     }
   }
   
-  flies
+  if(tidy == TRUE){
+    
+    setDT(gather(flies, fly, activity, -time))
+  }
+  else{
+    
+    setDT(flies)
+  }
 }
