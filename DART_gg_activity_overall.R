@@ -1,13 +1,11 @@
 # Works for two genotypes only
-DART_activity_overall <- function(tidy.clean, cell_length, geno_names, ...){
+DART_gg_activity_overall <- function(tidy.clean, cell_length, geno_names, ...){
   
   # NB: geno_names is a character vector with the two genotype names
   # NB: ... is a list of two vectors, each one specifying, in order, 
   # the fly numbers corresponding to geno_names[1] and geno_names[2]
   
-  library(tidyr)
   library(data.table)
-  library(dplyr)
   library(ggplot2)
   
   # Extract genotypes from ... (requires vectors for what flies are genotype 1, genotype 2, genotype 3, etc.)
@@ -32,6 +30,8 @@ DART_activity_overall <- function(tidy.clean, cell_length, geno_names, ...){
   }
   
   # Simple plot
-  ggplot(data = activity_per_minute) + geom_point(mapping = aes(x = fly, y = activity_per_minute, colour = geno)) + coord_flip()
+  ggplot(data = activity_per_minute) + 
+    geom_point(mapping = aes(x = fly, y = activity_per_minute, colour = geno)) + 
+    coord_flip()
   
 }
