@@ -1,4 +1,3 @@
-# Works for two genotypes only
 DART_gg_activity_overall <- function(tidy.clean, cell_length, geno_names, ...){
   
   # NB: geno_names is a character vector with the two genotype names
