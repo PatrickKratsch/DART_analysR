@@ -97,6 +97,7 @@ DART_clean <- function(raw, tidy = FALSE, ...){
   if(tidy == TRUE){
     
     setDT(gather(flies, fly, activity, -time))
+    
   }
   else{
     
