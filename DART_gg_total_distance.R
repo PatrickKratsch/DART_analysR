@@ -1,4 +1,3 @@
-# Works for two genotypes only
 DART_gg_total_distance <- function(tidy.clean, geno_names, ...){
   
   # NB: geno_names is a character vector with the two genotype names
@@ -13,6 +12,7 @@ DART_gg_total_distance <- function(tidy.clean, geno_names, ...){
   
   # Calculate a data.table with average activity per minute throughout experiment for each fly
   total_distance <- tidy.clean[, .(total_distance = sum(activity) / 10), by = fly]
+  
   # Convert fly column to factor and order data.table by values of activity_per_minute
   total_distance$fly <- factor(total_distance$fly, levels = 
                                       total_distance$fly[order(total_distance$total_distance)])
