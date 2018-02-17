@@ -1,14 +1,17 @@
-DART_analysR <- function(clean, sleep_threshold, cell_length, transition = NULL, before_after = NULL){
+DART_analysR <- function(data, sleep_threshold, cell_length = 1, transition = NULL, before_after = NULL){
   
   ## Parameters ## 
-  # clean           = clean.R output
+  # data            = DART output - if more flies in one csv file, subset
+  #                   relevant columns, e.g. data <- myexp[, 11:25] -
+  #                   don't forget to always include column 1 (time)
   # sleep_threshold = velocity of flies (per cell_length) must be 
   #                   below this value to be considered sleeping
-  # cell_length     = length of one sampling window in seconds
-  # transition      = time point in seconds a transition occurred
+  # cell_length     = length of one sampling window in seconds -
+  #                   by default, this is set to 1 s
+  # transition      = time point in seconds a light transition occurred
   # before_after    = if transition is given, this lets the user
   #                   specify whether DART_analysR should analyse
-  #                   the data of clean before or after the transition
+  #                   the data before or after the transition
   
   library(dplyr)
   library(data.table)
@@ -31,24 +34,24 @@ DART_analysR <- function(clean, sleep_threshold, cell_length, transition = NULL,
       
       if(before_after == "before"){
         
-        clean <- clean[0:transition, ]
+        data <- data[0:transition, ]
       }
       else if(before_after == "after"){
         
-        clean <- clean[transition:dim(clean)[1], ]
+        data <- data[transition:nrow(data), ]
       }
     }
   }
-
-  # Bind an extra row of 1's to first position of clean
+  
+  # Bind an extra row of 'non-sleep' to first position of clean
   # This extra row is important for downstream analysis, 
   # but does not represent anything biological
-  col_num <- dim(clean)[2]
-  clean2 <- as.list(rep.int((sleep_threshold + 1), col_num)) %>% rbind(clean)
+  col_num <- ncol(data)
+  data2 <- as.list(rep.int((sleep_threshold + 1), col_num)) %>% rbind(data)
   
   # Calculate analogue_to_binary df, where 1 
   # indicates sleep, while 0 indicates movement
-  analogue_to_binary <- clean2
+  analogue_to_binary <- data2
   cols <- ncol(analogue_to_binary)
   for(i in 2:cols){
     
