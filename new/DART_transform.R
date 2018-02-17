@@ -1,10 +1,7 @@
-DART_transform <- function(data, sample_names = NA){
+DART_transform <- function(data){
   
   # Load relevant packages
   library("data.table")
-  
-  # Read in data
-  data <- read.csv(data)
   
   # Transform data into data.table
   setDT(data)
@@ -26,12 +23,6 @@ DART_transform <- function(data, sample_names = NA){
   
   # Kill last row, because there is no movement for the last second
   movement <- movement[-(nrow(movement)), ]
-  
-  # Rename samples if relevant
-  if(!is.na(sample_names[1])){
-    
-    colnames(movement) <- c("time", sample_names)
-  }
   
   movement
 }
