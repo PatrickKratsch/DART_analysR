@@ -1,5 +1,9 @@
 DART_transform <- function(data){
   
+  # data                    = input to this function, as called by DART_transform_batch -
+  #                           once .csv file at a time from a directory of output .csv
+  #                           files, as defined by dir_path in DART_transform_batch
+  
   # Load relevant packages
   library("data.table")
   
