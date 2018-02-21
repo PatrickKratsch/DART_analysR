@@ -1,4 +1,4 @@
-DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0, tidy = F){
+DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0, bin = 5, threshold = 3){
   
   # dir_path          = path to directory containing appartus spreadsheets
   # sample_name_path  = path to sample_names csv file, INCLUDING FILE NAME
@@ -9,16 +9,18 @@ DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0,
   #                     <genotypeID>_2, <genotypeID>_3, etc., where 
   #                     the underscore-number indicates each individual fly -
   #                     this is required for later plotting
+  #                     IMPORTANT: All sample names have to be of equal length
   # start, end        = start and end are the time in seconds you want to
   #                     start and end the analysis: e.g. you may want to
   #                     start at second 24 and end 59 seconds before the
   #                     end of the last movie, because your light regime
   #                     is not second-exact. By default, the whole experiment
-  #                     is analysed
-  # tidy              = if set to TRUE, outputs the data in tidy format - 
-  #                     this is required for plotting in R - for sleep analysis
-  #                     with DART_analysR, however, a non-tidy dataset is needed
-  
+  #                     is analysed - check videos for start and end times
+  # bin               = rows to bin by - default is 5 s bins
+  # threshold         = the amount of movement per bin (as defined above)
+  #                     that should be converted to 0 - this is done tue to
+  #                     limitations of camera resolution etc. - default = 3mm / 5s
+
   # Load libraries
   library("rlist")
   library("tidyr")
@@ -74,7 +76,6 @@ DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0,
       
       movement_list[[i]] <- movement_list[[i]][, 2:ncol(movement_list[[i]])]
     }
-    
   }
   
   # Bind all data.tables together
@@ -83,14 +84,32 @@ DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0,
   # Remove rows from start and/or end (e.g. when analysing day or night only)
   all_movement_fit <- all_movement[start:(nrow(all_movement) - end), ]
   
-  # Create tidy data.table for plotting OR return non-tidy data.table for sleep analysis
-  if(tidy == T){
-    
-    all_movement_fit_tidy <- gather(all_movement_fit, fly, speed, -time)
-    all_movement_fit_tidy
-  }
-  else{
-    
-    all_movement_fit
-  }
+  # Re-define time axis - this might not be necessary,
+  # as data gets tidied up below anyway
+  all_movement_fit$time <- 1:nrow(all_movement_fit)
+  
+  # Bin by bin argument to function (supplied in seconds)
+  # Note that the last bin might not be of exact length == bin,
+  # as nrow(data) may not be an integer-multiple of bin
+  print(sprintf("Binning rows of data by %s s...", bin))
+  row_num <- nrow(all_movement_fit)
+  all_movement_fit <- all_movement_fit[, as.list(colSums(.SD)), by = gl(ceiling(row_num / bin), bin, row_num)]
+  
+  # Redefine time column and remove gl column
+  all_movement_fit <- all_movement_fit[, 2:ncol(all_movement_fit)]
+  all_movement_fit[, time := 1:nrow(all_movement_fit)]
+  
+  # Tidy datatable - need to setDT again --> Figure out why
+  # but leave this line for now
+  print("Tidying data...")
+  all_movement_fit_tidy <- gather(all_movement_fit, fly, mm, -time)
+  setDT(all_movement_fit_tidy)
+  
+  # Convert all values below threshold (as defined 
+  # as input to this function) to 0
+  print(sprintf("Converting all observations below %s mm / %s s to 0...", threshold, bin))
+  all_movement_fit_tidy[mm <= threshold, mm := 0]
+  
+  # Return all_movement_fit_tidy
+  all_movement_fit_tidy
 }

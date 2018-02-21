@@ -13,7 +13,7 @@ DART_transform <- function(data){
   # Generate an offset table to prepare
   # displacement analysis
   data_offset <- rbind(data[2:nrow(data), ], data[nrow(data), ])
-  data_displacement <- cbind(data_offset[, 1], data_offset[, 2:ncol(data_offset)] - data[, 2:ncol(data)])
+  data_displacement <- cbind(data[, 1], data_offset[, 2:ncol(data_offset)] - data[, 2:ncol(data)])
   
   # Save time in vector to bin it back to data.table
   # once movement is generated
