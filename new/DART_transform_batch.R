@@ -32,8 +32,9 @@ DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0,
   file_names <- list.files(dir_path)
   
   # Read in list of sample names - this needs 
-  # to be prepared in advance, e.g. in Excel
-  sample_names <- read.csv(sample_name_path, header = F)
+  # to be prepared in advance, e.g. in Excel -
+  # use fread() because it's much faster
+  sample_names <- fread(sample_name_path, header = F, sep = ",")
   sample_names <- as.character(sample_names$V1)
   
   # Generate list, which will carry each
@@ -55,7 +56,7 @@ DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0,
     # grep the current file name
     apparatus <- grep(reg_ex, file_names, perl = TRUE, value = TRUE)
     print(sprintf("Processing apparatus: %s", apparatus))
-    apparatus <- read.csv(paste0(dir_path, apparatus), header = T)
+    apparatus <- fread(paste0(dir_path, apparatus), header = T, sep = ",")
     
     # Calculate movement data
     movement_list[[i]] <- DART_transform(apparatus)
@@ -82,22 +83,22 @@ DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0,
   all_movement <- list.cbind(movement_list)
   
   # Remove rows from start and/or end (e.g. when analysing day or night only)
-  all_movement_fit <- all_movement[start:(nrow(all_movement) - end), ]
+  all_movement_fit <- all_movement[start:(all_movement[, .N] - end), ]
   
   # Re-define time axis - this might not be necessary,
   # as data gets tidied up below anyway
-  all_movement_fit$time <- 1:nrow(all_movement_fit)
+  all_movement_fit$time <- 1:all_movement_fit[, .N]
   
   # Bin by bin argument to function (supplied in seconds)
   # Note that the last bin might not be of exact length == bin,
   # as nrow(data) may not be an integer-multiple of bin
   print(sprintf("Binning rows of data by %s s...", bin))
-  row_num <- nrow(all_movement_fit)
+  row_num <- all_movement_fit[, .N]
   all_movement_fit <- all_movement_fit[, as.list(colSums(.SD)), by = gl(ceiling(row_num / bin), bin, row_num)]
   
   # Redefine time column and remove gl column
   all_movement_fit <- all_movement_fit[, 2:ncol(all_movement_fit)]
-  all_movement_fit[, time := 1:nrow(all_movement_fit)]
+  all_movement_fit[, time := 1:all_movement_fit[, .N]]
   
   # Tidy datatable - need to setDT again --> Figure out why
   # but leave this line for now

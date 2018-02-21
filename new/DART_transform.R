@@ -12,7 +12,7 @@ DART_transform <- function(data){
   
   # Generate an offset table to prepare
   # displacement analysis
-  data_offset <- rbind(data[2:nrow(data), ], data[nrow(data), ])
+  data_offset <- rbind(data[2:data[, .N], ], data[data[, .N], ])
   data_displacement <- cbind(data[, 1], data_offset[, 2:ncol(data_offset)] - data[, 2:ncol(data)])
   
   # Save time in vector to bin it back to data.table
@@ -26,7 +26,7 @@ DART_transform <- function(data){
   movement <- cbind(time, movement)
   
   # Kill last row, because there is no movement for the last second
-  movement <- movement[-(nrow(movement)), ]
+  movement <- movement[-(movement[, .N]), ]
   
   movement
 }
