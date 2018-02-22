@@ -1,4 +1,4 @@
-DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0, bin = 5, threshold = 3){
+DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0, bin = 5, threshold = 3, dead = 2){
   
   # dir_path          = path to directory containing appartus spreadsheets
   # sample_name_path  = path to sample_names csv file, INCLUDING FILE NAME
@@ -20,10 +20,16 @@ DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0,
   # threshold         = the amount of movement per bin (as defined above)
   #                     that should be converted to 0 - this is done tue to
   #                     limitations of camera resolution etc. - default = 3mm / 5s
-
+  # dead              = looks through the second half of the experiment for flies
+  #                     that didn't move at all - these are defined as dead, which
+  #                     causes a message to be printed to the user, who can then
+  #                     manually delete these flies from the apparatus files 
+  #                     and the sample_name_path file
+  
   # Load libraries
   library("rlist")
   library("tidyr")
+  library("data.table")
   
   # Source required function
   source("DART_transform.R")
@@ -34,8 +40,8 @@ DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0,
   # Read in list of sample names - this needs 
   # to be prepared in advance, e.g. in Excel -
   # use fread() because it's much faster
-  sample_names <- fread(sample_name_path, header = F, sep = ",")
-  sample_names <- as.character(sample_names$V1)
+  sample_names <- fread(sample_name_path, header = T, sep = ",")
+  sample_names <- sample_names$ID
   
   # Generate list, which will carry each
   # analysed movement data per apparatus
@@ -82,7 +88,8 @@ DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0,
   # Bind all data.tables together
   all_movement <- list.cbind(movement_list)
   
-  # Remove rows from start and/or end (e.g. when analysing day or night only)
+  # Remove rows from start and/or end (e.g. when analysing day or night only,
+  # or when wanting to remove some light artifacts during light transitions)
   all_movement_fit <- all_movement[start:(all_movement[, .N] - end), ]
   
   # Re-define time axis - this might not be necessary,
@@ -95,6 +102,8 @@ DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0,
   print(sprintf("Binning rows of data by %s s...", bin))
   row_num <- all_movement_fit[, .N]
   all_movement_fit <- all_movement_fit[, as.list(colSums(.SD)), by = gl(ceiling(row_num / bin), bin, row_num)]
+  # Save new row_num for dead fly calculation below
+  row_num <- all_movement_fit[, .N]
   
   # Redefine time column and remove gl column
   all_movement_fit <- all_movement_fit[, 2:ncol(all_movement_fit)]
@@ -111,6 +120,16 @@ DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0,
   print(sprintf("Converting all observations below %s mm / %s s to 0...", threshold, bin))
   all_movement_fit_tidy[mm <= threshold, mm := 0]
   
+  # Test for dead flies
+  dead_flies <- all_movement_fit_tidy[, .(sum(.SD[(row_num / 2):row_num, mm])), by = fly]
+  colnames(dead_flies)[2] <- "mm"
+  dead_flies <- dead_flies[mm == 0]$fly
+  for(dead in dead_flies){
+    
+    dead <- dead
+    print(sprintf("This fly seems to be dead: %s", dead))
+  }
+
   # Return all_movement_fit_tidy
   all_movement_fit_tidy
 }

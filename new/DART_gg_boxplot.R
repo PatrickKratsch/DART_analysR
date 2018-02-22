@@ -24,6 +24,7 @@ DART_gg_boxplot <- function(all_movement_fit_tidy){
     geom_boxplot() +
     geom_jitter(height = 0, width = 0.1) + 
     theme_bw() +
+    scale_y_continuous(breaks = seq(0, 70, 2)) +
     ylab("Total Distance / m") +
     theme(axis.title.x = element_blank(), 
           axis.line = element_line(colour="black"),
