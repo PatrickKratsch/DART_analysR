@@ -19,6 +19,7 @@ DART_gg_speed_distribution <- function(all_movement_fit_tidy){
   activity <- all_movement_fit_tidy[mm > 0, ]
   ggplot(activity, aes(x = mm, colour = genotype)) +
     stat_ecdf(geom = "step") +
+    scale_x_continuous(breaks = seq(0, 60, 5)) +
     theme_bw() +
     theme(axis.line = element_line(colour="black"),
           panel.grid.major = element_line(colour="#f0f0f0"), 

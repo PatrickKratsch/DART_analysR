@@ -1,7 +1,7 @@
-DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0, bin = 5, threshold = 3, dead = 2){
+DART_transform_batch <- function(dir_path, sample_name_file, start = 1, end = 0, bin = 5, threshold = 3, dead = 1440){
   
   # dir_path          = path to directory containing appartus spreadsheets
-  # sample_name_path  = path to sample_names csv file, INCLUDING FILE NAME
+  # sample_name_file  = path to sample_names csv file, INCLUDING FILE NAME
   #                     Note that you need to account for dead flies (This
   #                     can also be done 'on the fly' when checking 
   #                     'str(movement_list))' -
@@ -19,12 +19,11 @@ DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0,
   # bin               = rows to bin by - default is 5 s bins
   # threshold         = the amount of movement per bin (as defined above)
   #                     that should be converted to 0 - this is done tue to
-  #                     limitations of camera resolution etc. - default = 3mm / 5s
-  # dead              = looks through the second half of the experiment for flies
-  #                     that didn't move at all - these are defined as dead, which
-  #                     causes a message to be printed to the user, who can then
-  #                     manually delete these flies from the apparatus files 
-  #                     and the sample_name_path file
+  #                     limitations of camera resolution etc. - default = 3mm / 5s -
+  #                     NB: thresholding is done after binning
+  # dead              = looks through the last 'dead' minutes of the experiment to
+  #                     determine whether a fly may have been dead - deafault = 1440 (2 h
+  #                     after binning)
   
   # Load libraries
   library("rlist")
@@ -36,11 +35,12 @@ DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0,
   
   # Store file names
   file_names <- list.files(dir_path)
+  file_names <- grep(".csv$", file_names, perl=TRUE, value=TRUE)
   
   # Read in list of sample names - this needs 
   # to be prepared in advance, e.g. in Excel -
   # use fread() because it's much faster
-  sample_names <- fread(sample_name_path, header = T, sep = ",")
+  sample_names <- fread(sample_name_file, header = T, sep = ",")
   sample_names <- sample_names$ID
   
   # Generate list, which will carry each
@@ -121,7 +121,7 @@ DART_transform_batch <- function(dir_path, sample_name_path, start = 1, end = 0,
   all_movement_fit_tidy[mm <= threshold, mm := 0]
   
   # Test for dead flies
-  dead_flies <- all_movement_fit_tidy[, .(sum(.SD[(row_num / 2):row_num, mm])), by = fly]
+  dead_flies <- all_movement_fit_tidy[, .(sum(.SD[(row_num - dead):row_num, mm])), by = fly]
   colnames(dead_flies)[2] <- "mm"
   dead_flies <- dead_flies[mm == 0]$fly
   for(dead in dead_flies){
