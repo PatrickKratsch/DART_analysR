@@ -1,4 +1,4 @@
-DART_transform_batch <- function(dir_path, sample_name_file, start = 1, end = 0, bin = 5, threshold = 3, dead = 1440){
+DART_transform_batch <- function(dir_path, sample_name_file, start = 1, end = 0, bin = 5, threshold = 3, dead = 1440, csv = FALSE){
   
   # dir_path          = path to directory containing appartus spreadsheets
   # sample_name_file  = path to sample_names csv file, INCLUDING FILE NAME
@@ -24,6 +24,8 @@ DART_transform_batch <- function(dir_path, sample_name_file, start = 1, end = 0,
   # dead              = looks through the last 'dead' minutes of the experiment to
   #                     determine whether a fly may have been dead - deafault = 1440 (2 h
   #                     after binning)
+  # excel             = If TRUE, instead of stdout, the output data.table will be written
+  #                     to an excel file. Make sure JAVA is up to date for this option.
   
   # Load libraries
   library("rlist")
@@ -90,7 +92,13 @@ DART_transform_batch <- function(dir_path, sample_name_file, start = 1, end = 0,
   
   # Remove rows from start and/or end (e.g. when analysing day or night only,
   # or when wanting to remove some light artifacts during light transitions)
-  all_movement_fit <- all_movement[start:(all_movement[, .N] - end), ]
+  # If end == 0, i.e. default, the end of the analysis is the end
+  # of the actual experiment.
+  if(end == 0){
+    
+    end <- all_movement[, .N]
+  }
+  all_movement_fit <- all_movement[start:end, ]
   
   # Re-define time axis - this might not be necessary,
   # as data gets tidied up below anyway
@@ -107,7 +115,7 @@ DART_transform_batch <- function(dir_path, sample_name_file, start = 1, end = 0,
   
   # Redefine time column and remove gl column
   all_movement_fit <- all_movement_fit[, 2:ncol(all_movement_fit)]
-  all_movement_fit[, time := 1:all_movement_fit[, .N]]
+  all_movement_fit[, time := bin*(1:all_movement_fit[, .N])]
   
   # Tidy datatable - need to setDT again --> Figure out why
   # but leave this line for now
@@ -131,5 +139,14 @@ DART_transform_batch <- function(dir_path, sample_name_file, start = 1, end = 0,
   }
 
   # Return all_movement_fit_tidy
-  all_movement_fit_tidy
+  if(csv){
+    
+    all_movement_fit_untidy <- spread(all_movement_fit_tidy, fly, mm)
+    print("Writing results to .csv file...")
+    write.csv(all_movement_fit_untidy, paste0(dir_path, "results.csv"))
+  }
+  else{
+    
+    all_movement_fit_tidy
+  }
 }
